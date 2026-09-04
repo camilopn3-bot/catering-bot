@@ -62,4 +62,5 @@ async def tarea(ctx):
     roles_disponibles.remove(rol_elegido)
     await ctx.send(f'{ctx.author.mention}, tu ROL asignado hoy es: **{rol_elegido}**')
 
-bot.run('MTU0Mzc2ODUxNTE1NTMzMzIwMQ.G0UleU.xfZ-aOQVq1bSSHHjAlNZEYRm5ESqp56EowCX18')
+import os
+bot.run(os.getenv('DISCORD_TOKEN'))
