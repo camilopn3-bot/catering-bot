@@ -12,7 +12,7 @@ roles_catering = [
     "CREAMERS & INVENTORY**\n• Wash & Fill Creamers\n• Count Milks/Lemonade",
     "SNACK & COFFEE CRATES**\n• Restock Crate area\n• Restock Coffee area\n• Restock Snack Rack",
     "BEVERAGE MONITORING**\n• Restock Bevs\n• Count Cases\n• Refill Fridge",
-    "UILD & DECOR**\n• BUILD N/D CRATES\n• CUT FRUIT\n• Prep dispensers/mocktails",
+    "BUILD & DECOR**\n• BUILD N/D CRATES\n• CUT FRUIT\n• Prep dispensers/mocktails",
     "GENERAL DUTIES**\n• Wipe down hot boxes and Sink\n• Restock catering station including risers"
 ]
 roles_disponibles = roles_catering.copy()
