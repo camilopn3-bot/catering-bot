@@ -7,36 +7,14 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-roles_catering = roles_catering = [
-    """**STATION PREP**
-• Platter Pastries
-• Bake
-• Label/Clean Rack""",
-    
-    """**CREAMERS & INVENTORY**
-• Wash & Fill Creamers
-• Count Milks/Lemonade""",
-    
-    """**SNACK & COFFEE CRATES**
-• Restock Crate area
-• Restock Coffee area
-• Restock Snack Rack""",
-    
-    """**BEVERAGE MONITORING**
-• Restock Bevs
-• Count Cases
-• Refill Fridge""",
-    
-    """**BUILD & DECOR**
-• BUILD N/D CRATES
-• CUT FRUIT
-• Prep dispensers/mocktails""",
-    
-    """**GENERAL DUTIES**
-• Wipe down hot boxes and Sink
-• Restock catering station including risers"""
+roles_catering = [
+    "**STATION PREP**\n• Platter Pastries\n• Bake\n• Label/Clean Rack",
+    "**CREAMERS & INVENTORY**\n• Wash & Fill Creamers\n• Count Milks/Lemonade",
+    "**SNACK & COFFEE CRATES**\n• Restock Crate area\n• Restock Coffee area\n• Restock Snack Rack",
+    "**BEVERAGE MONITORING**\n• Restock Bevs\n• Count Cases\n• Refill Fridge",
+    "**BUILD & DECOR**\n• BUILD N/D CRATES\n• CUT FRUIT\n• Prep dispensers/mocktails",
+    "**GENERAL DUTIES**\n• Wipe down hot boxes and Sink\n• Restock catering station including risers"
 ]
-
 roles_disponibles = roles_catering.copy()
 ultimo_dia = datetime.now().date()
 
