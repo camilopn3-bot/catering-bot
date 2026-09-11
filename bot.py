@@ -46,11 +46,11 @@ roles_catering = [
         "• Lavar y desinfectar el fregadero cada 2 horas; se deben quitar las manchas de café + asegurarse de que no haya comida en el fregadero"
     ),
     (
-        "**DECORACIÓN, BLANCOS Y STERNOS**\n"
+        "**DECORACIÓN, MANTELES Y STERNOS**\n"
         "• Guardar la decoración, elevadores y dispensadores / dispensador de té plateado en los estantes que les corresponden + organizar el área\n"
-        "• Doblar y envolver los manteles/lienzos y ponerlos en el estante de blancos en el vestidor\n"
+        "• Doblar y envolver los manteles/lienzos y ponerlos en el estante de manteles en el cuarto de lockers"
         "• Abrir y consolidar las cajas de sternos hasta 3-4 estuches y ponerlos en una canasta + organizar el área de sternos\n"
-        "• Poner todos los manteles sucios en bolsas blancas para blancos y moverlos fuera del área de paso"
+        "• Poner todos los manteles sucios en bolsas blancas para Manteles y moverlos fuera del área de paso"
     )
 ]
 
