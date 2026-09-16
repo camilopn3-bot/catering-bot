@@ -6,13 +6,17 @@ import os
 from flask import Flask
 from threading import Thread
 
-# --- MINI SERVIDOR WEB PARA ENGAÑAR A RENDER ---
+# --- MINI SERVIDOR WEB PARA RENDER (CON PUERTO DINÁMICO) ---
 app = Flask(__name__)
 @app.route('/')
 def home():
     return "¡Tasky está vivo y funcionando!"
+
 def run_server():
-    app.run(host='0.0.0.0', port=8080)
+    # Render asigna su propio puerto; si no lo encuentra, usa el 8080
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
 def keep_alive():
     t = Thread(target=run_server)
     t.start()
@@ -59,41 +63,38 @@ roles_catering = [
         "• Lavar y desinfectar el fregadero cada 2 horas; se deben quitar las manchas de café + asegurarse de que no haya comida en el fregadero"
     ),
     (
-        "**DECORACIÓN, MANTELES Y STERNOS**\n"
-        "• Guardar la decoración, elevadores y dispensadores / dispensador de té plateado en los estantes que les corresponden + organizar el área\n"
-        "• Doblar y envolver los manteles/lienzos y ponerlos en el estante de manteles en el cuarto de lockers"
-        "• Abrir y consolidar las cajas de sternos hasta 3-4 estuches y ponerlos en una canasta + organizar el área de sternos\n"
-        "• Poner todos los manteles sucios en bolsas blancas para Manteles y moverlos fuera del área de paso"
+        "**DECORACIÓN, BLANCOS Y STERNOS**\n"
+        "• Guardar la decoración, elevadores y dispensadores / dispensador de té plateado en los estantes que les corresponden + organizar el área\n"
+        "• Doblar y envolver los manteles/lienzos y ponerlos en el estante de blancos en el vestidor\n"
+        "• Abrir y consolidar las cajas de sternos hasta 3-4 estuches y ponerlos en una canasta + organizar el área de sternos\n"
+        "• Poner todos los manteles sucios en bolsas blancas para blancos y moverlos fuera del área de paso"
     )
 ]
 
 roles_disponibles = roles_catering.copy()
 
-# Función para obtener la fecha exacta de California (PDT)
 def obtener_fecha_california():
     hora_utc = datetime.utcnow()
     hora_california = hora_utc - timedelta(hours=7)
     return hora_california.date()
 
 ultimo_dia = obtener_fecha_california()
-usuarios_estado = {}  # Ahora guarda el estado: "pendiente" o "terminada"
+usuarios_estado = {}
 
 @bot.event
 async def on_ready():
-    print(f'¡Tasky ({bot.user}) está listo con zona horaria de San José y bloqueo estricto!')
+    print(f'¡Tasky ({bot.user}) está listo y conectado con éxito!')
 
 @bot.command()
 async def task(ctx):
     global roles_disponibles, ultimo_dia, usuarios_estado
     
-    # 1. Revisar si cambió el día en California
     dia_actual = obtener_fecha_california()
     if dia_actual != ultimo_dia:
         roles_disponibles = roles_catering.copy()
         ultimo_dia = dia_actual
         usuarios_estado.clear()
 
-    # 2. Revisar si el usuario ya pidió una tarea hoy
     if ctx.author.id in usuarios_estado:
         estado = usuarios_estado[ctx.author.id]
         if estado == "pendiente":
@@ -102,12 +103,10 @@ async def task(ctx):
             await ctx.send(f"✅ {ctx.author.mention}, ya completaste tu tarea del día. ¡Vuelve mañana para una nueva!")
         return
 
-    # 3. Revisar si hay tareas disponibles
     if not roles_disponibles:
         await ctx.send("🚫 ¡Las tareas de hoy ya se han agotado por completo! Vuelve a intentarlo mañana.")
         return
 
-    # 4. Asignar nueva tarea (y eliminarla de la lista)
     rol_elegido = random.choice(roles_disponibles)
     roles_disponibles.remove(rol_elegido)
     usuarios_estado[ctx.author.id] = "pendiente"
