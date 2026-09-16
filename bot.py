@@ -86,7 +86,7 @@ async def on_ready():
     print(f'¡Tasky ({bot.user}) está listo y conectado con éxito!')
 
 @bot.command()
-async def task(ctx):
+async def tarea(ctx):
     global roles_disponibles, ultimo_dia, usuarios_estado
     
     dia_actual = obtener_fecha_california()
