@@ -1,14 +1,27 @@
 import discord
 from discord.ext import commands
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
+from flask import Flask
+from threading import Thread
 
+# --- MINI SERVIDOR WEB PARA ENGAÑAR A RENDER ---
+app = Flask(__name__)
+@app.route('/')
+def home():
+    return "¡Tasky está vivo y funcionando!"
+def run_server():
+    app.run(host='0.0.0.0', port=8080)
+def keep_alive():
+    t = Thread(target=run_server)
+    t.start()
+
+# --- CÓDIGO DE TASKY ---
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Estaciones y tareas de catering en español
 roles_catering = [
     (
         "**PASTELES Y POSTRES**\n"
@@ -26,9 +39,9 @@ roles_catering = [
     ),
     (
         "**ESTACIÓN DE CAFÉ**\n"
-        "• Reabastecer el contenedor de café (regular y descafeinado) + revisar el inventario de café y filtros (ej. cuántas cajas nos quedan)\n"
+        "• Reabastecer el contenedor de café (regular y descafeinado) + revisar el inventario de café y filtros\n"
         "• Llenar los Cambros de 12 cuartos (1 regular, 1 descafeinado) con filtros de café prellenados y apilarlos dentro del Cambro para un fácil acceso\n"
-        "• Llenar y etiquetar las cremeras con la fecha de caducidad, el tipo de leche adentro y el número de orden en la parte inferior del contenedor (usar etiquetas culinarias)\n"
+        "• Llenar y etiquetar las cremeras con la fecha de caducidad, el tipo de leche adentro y el número de orden en la parte inferior del contenedor\n"
         "• Limpiar, desinfectar y organizar la estación de café de catering + los contenedores de crema y las cafeteras"
     ),
     (
@@ -40,59 +53,65 @@ roles_catering = [
     ),
     (
         "**SANITIZACIÓN Y MANTENIMIENTO DE ESTACIÓN**\n"
-        "• Tomar las cubetas de desinfectante y detergente; rellenar con desinfectante y detergente nuevo cada 2 horas y etiquetarlas con la hora en que se rellenó + iniciales. (Solo se permite 1 toalla en el desinfectante, pero debe estar limpia y sumergida por completo).\n"
+        "• Tomar las cubetas de desinfectante y detergente; rellenar con desinfectante y detergente nuevo cada 2 horas y etiquetarlas con la hora en que se rellenó + iniciales.\n"
         "• Rellenar las toallas secas, guantes si es necesario, caja de pinzas, contenedor de cucharas y el área de preparación de catering\n"
         "• Limpiar cuchillos y soportes (solo 1 cuchillo por soporte)\n"
         "• Lavar y desinfectar el fregadero cada 2 horas; se deben quitar las manchas de café + asegurarse de que no haya comida en el fregadero"
     ),
     (
         "**DECORACIÓN, MANTELES Y STERNOS**\n"
-        "• Guardar la decoración, elevadores y dispensadores / dispensador de té plateado en los estantes que les corresponden + organizar el área\n"
-        "• Doblar y envolver los manteles/lienzos y ponerlos en el estante de manteles en el cuarto de lockers"
-        "• Abrir y consolidar las cajas de sternos hasta 3-4 estuches y ponerlos en una canasta + organizar el área de sternos\n"
-        "• Poner todos los manteles sucios en bolsas blancas para Manteles y moverlos fuera del área de paso"
+        "• Guardar la decoración, elevadores y dispensadores / dispensador de té plateado en los estantes que les corresponden + organizar el área\n"
+        "• Doblar y envolver los manteles/lienzos y ponerlos en el estante de manteles en el cuarto de lockers"
+        "• Abrir y consolidar las cajas de sternos hasta 3-4 estuches y ponerlos en una canasta + organizar el área de sternos\n"
+        "• Poner todos los manteles sucios en bolsas blancas para Manteles y moverlos fuera del área de paso"
     )
 ]
 
 roles_disponibles = roles_catering.copy()
-ultimo_dia = datetime.now().date()
-active_tasks = {}  # Diccionario para controlar tareas activas
+
+# Función para obtener la fecha exacta de California (PDT)
+def obtener_fecha_california():
+    hora_utc = datetime.utcnow()
+    hora_california = hora_utc - timedelta(hours=7)
+    return hora_california.date()
+
+ultimo_dia = obtener_fecha_california()
+usuarios_estado = {}  # Ahora guarda el estado: "pendiente" o "terminada"
 
 @bot.event
 async def on_ready():
-    print(f'¡El bot {bot.user} está listo, con tareas en español y control de tareas activas!')
+    print(f'¡Tasky ({bot.user}) está listo con zona horaria de San José y bloqueo estricto!')
 
 @bot.command()
-async def tarea(ctx):
-    global roles_disponibles, ultimo_dia
+async def task(ctx):
+    global roles_disponibles, ultimo_dia, usuarios_estado
     
-    # Restablecer tareas al cambiar de día
-    dia_actual = datetime.now().date()
+    # 1. Revisar si cambió el día en California
+    dia_actual = obtener_fecha_california()
     if dia_actual != ultimo_dia:
         roles_disponibles = roles_catering.copy()
         ultimo_dia = dia_actual
-        active_tasks.clear()
+        usuarios_estado.clear()
 
-    # Verificar si el usuario ya tiene una tarea activa
-    if ctx.author.id in active_tasks:
-        await ctx.send(
-            f"🚫 {ctx.author.mention}, ya se te ha asignado una tarea previamente. "
-            "No podrás pedir una nueva hasta que termines la que se te asignó y la marques como completada escribiendo **`!terminar`**."
-        )
+    # 2. Revisar si el usuario ya pidió una tarea hoy
+    if ctx.author.id in usuarios_estado:
+        estado = usuarios_estado[ctx.author.id]
+        if estado == "pendiente":
+            await ctx.send(f"🚫 {ctx.author.mention}, ya se te asignó una tarea hoy y está pendiente. Debes enviar tu evidencia y escribir **`!terminar`**.")
+        elif estado == "terminada":
+            await ctx.send(f"✅ {ctx.author.mention}, ya completaste tu tarea del día. ¡Vuelve mañana para una nueva!")
         return
 
+    # 3. Revisar si hay tareas disponibles
     if not roles_disponibles:
         await ctx.send("🚫 ¡Las tareas de hoy ya se han agotado por completo! Vuelve a intentarlo mañana.")
         return
 
-    # Elegir tarea aleatoria
+    # 4. Asignar nueva tarea (y eliminarla de la lista)
     rol_elegido = random.choice(roles_disponibles)
     roles_disponibles.remove(rol_elegido)
-    
-    # Registrar tarea activa
-    active_tasks[ctx.author.id] = rol_elegido
+    usuarios_estado[ctx.author.id] = "pendiente"
 
-    # Mensaje con notas importantes en español
     mensaje = (
         f"{ctx.author.mention}, tu tarea asignada es:\n\n{rol_elegido}\n\n"
         "📌 **Nota importante:** Si usted tiene alguna pregunta sobre cómo hacer o dónde encontrar lo que necesita, "
@@ -101,16 +120,18 @@ async def tarea(ctx):
         "y no es opcional; de lo contrario, debe adjuntar la razón del por qué no realizó su tarea, "
         "así su supervisor y manejador pueden auditar su actividad."
     )
-    
     await ctx.send(mensaje)
 
 @bot.command()
 async def terminar(ctx):
-    """Permite al usuario liberar su tarea actual para poder pedir otra en el futuro si la termina."""
-    if ctx.author.id in active_tasks:
-        del active_tasks[ctx.author.id]
-        await ctx.send(f"✅ {ctx.author.mention}, has completado y liberado tu tarea. Ya puedes solicitar una nueva con **`!tarea`** cuando corresponda.")
+    if ctx.author.id in usuarios_estado:
+        if usuarios_estado[ctx.author.id] == "pendiente":
+            usuarios_estado[ctx.author.id] = "terminada"
+            await ctx.send(f"✅ {ctx.author.mention}, has marcado tu tarea como completada. ¡Buen trabajo! Quedas liberado por hoy.")
+        else:
+            await ctx.send(f"ℹ️ {ctx.author.mention}, ya habías marcado tu tarea como completada anteriormente.")
     else:
-        await ctx.send(f"ℹ️ {ctx.author.mention}, no tienes ninguna tarea activa registrada en este momento.")
+        await ctx.send(f"ℹ️ {ctx.author.mention}, no tienes ninguna tarea asignada el día de hoy.")
 
+keep_alive()
 bot.run(os.getenv('DISCORD_TOKEN'))
